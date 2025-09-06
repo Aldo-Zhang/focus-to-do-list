@@ -1,173 +1,347 @@
-# FocusList - 专注任务管理应用
+# FocusList - Intelligent Task Management Application
 
-一个现代化的任务管理应用，使用 React + Next.js + shadcn/ui 前端和 Node.js + Express + SQLite 后端。
+A modern, AI-powered task management application built with Tauri + Next.js + Node.js + SQLite, featuring automatic task archiving, intelligent task rewriting, and a clean, focused interface.
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 方法一：使用强化启动脚本（推荐）
+### Method 1: Using Enhanced Startup Script (Recommended)
 
 ```bash
-# 克隆项目后，直接运行
+# After cloning the project, simply run:
 ./start-dev.sh
 ```
 
-这将自动检测架构、安装正确的 Tauri CLI 平台包并启动完整的开发环境。
+This will automatically detect your architecture, install the correct Tauri CLI platform packages, and start the complete development environment.
 
-### 方法二：Tauri 桌面应用开发
+### Method 2: Tauri Desktop App Development
 
 ```bash
-# 启动 Tauri 开发环境（包含前端和后端）
+# Start Tauri development environment (includes both frontend and backend)
 npm run tauri:dev
 ```
 
-### 方法三：仅 Web 开发
+### Method 3: Web Development Only
 
-#### 启动后端
+#### Start Backend
 ```bash
 cd backend
 npm install
 npm run dev
 ```
 
-后端将在 http://localhost:4000 运行
+Backend will run at http://localhost:4000
 
-#### 启动前端
+#### Start Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-前端将在 http://localhost:3000 运行
+Frontend will run at http://localhost:3000
 
-## 🔧 故障排除
+## 🔧 Troubleshooting
 
-### Tauri CLI Native Binding 错误
-如果遇到 "Cannot find native binding" 错误：
+### Tauri CLI Native Binding Error
+If you encounter "Cannot find native binding" error:
 
 ```bash
-# 清理并重新安装
+# Clean and reinstall
 rm -rf node_modules package-lock.json && npm i && npm run tauri:dev
 
-# 或使用 Cargo 后备方案
+# Or use Cargo fallback
 cargo tauri dev
 ```
 
-### 系统要求
-- **macOS**: Apple Silicon (arm64) 或 Intel (x64)
+### System Requirements
+- **macOS**: Apple Silicon (arm64) or Intel (x64)
 - **Xcode Command Line Tools**: `xcode-select --install`
-- **Rust 工具链**: 通过 `rustup` 安装
-- **Node.js**: arm64 版本
+- **Rust Toolchain**: Install via `rustup`
+- **Node.js**: arm64 version
 
-详细开发指南请参考 [docs/dev.md](docs/dev.md)
+For detailed development guide, see [docs/dev.md](docs/dev.md)
 
-## 📋 功能特性
+## ✨ Key Features
 
-### 前端功能
-- ✅ 现代化的 React + Next.js 应用
-- ✅ 使用 shadcn/ui 组件库
-- ✅ 响应式设计，支持深色模式
-- ✅ 实时任务管理
-- ✅ 智能任务排序（紧急任务优先）
-- ✅ 键盘快捷键支持（Cmd+N 快速添加任务）
-- ✅ 任务编辑、删除、置顶功能
+### 🧠 AI-Powered Task Management
+- **Intelligent Task Rewriting**: Uses Ollama with local LLM (llama3.1:latest) to automatically rewrite and enhance task descriptions
+- **Smart Task Classification**: Automatically categorizes tasks by urgency and priority
+- **Graceful Fallback**: Falls back to simple rewriting if Ollama is unavailable
+- **Customizable Rules**: Define your own task rewriting rules in settings
 
-### 后端功能
-- ✅ RESTful API 设计
-- ✅ SQLite 数据库存储
-- ✅ 智能任务排序算法
-- ✅ CORS 支持
-- ✅ 错误处理和验证
-- ✅ 示例数据自动插入
+### 📋 Advanced Task Management
+- **Automatic Archiving**: Completed tasks are automatically archived and hidden from main lists
+- **Smart Task Sorting**: Tasks are sorted by urgency, priority, and due dates
+- **Task Filtering**: Filter by Today, Upcoming, Someday, All, or Archived tasks
+- **Task Actions**: Edit, Pin, Archive/Restore, and Delete tasks
+- **Real-time Updates**: All changes are reflected immediately across the interface
 
-## 🏗️ 技术栈
+### 🎨 Modern User Interface
+- **Clean Design**: Built with shadcn/ui components and Tailwind CSS
+- **Dark Mode Support**: Automatic theme switching
+- **Responsive Layout**: Works on desktop and mobile devices
+- **Keyboard Shortcuts**: Cmd+N for quick task creation
+- **Command Palette**: Quick access to all features
 
-### 前端
-- **框架**: Next.js 14
-- **UI 库**: shadcn/ui + Tailwind CSS
-- **状态管理**: React Hooks
-- **类型安全**: TypeScript
-- **图标**: Lucide React
+### ⚙️ Settings & Configuration
+- **Ollama Configuration**: Set custom Ollama base URL and model
+- **User Rules**: Define custom task rewriting rules
+- **Show Completed Tasks**: Toggle visibility of completed tasks
+- **Sidebar Management**: Collapsible sidebar for more screen space
 
-### 后端
-- **运行时**: Node.js
-- **框架**: Express.js
-- **数据库**: SQLite3
-- **中间件**: CORS, Body Parser
+## 🏗️ Technology Stack
 
-## 📊 数据库架构
+### Frontend
+- **Framework**: Next.js 14 with App Router
+- **UI Library**: shadcn/ui + Tailwind CSS
+- **State Management**: React Hooks
+- **Type Safety**: TypeScript
+- **Icons**: Lucide React
+- **Desktop**: Tauri (Rust + WebView)
+
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: SQLite3
+- **AI Integration**: Ollama (local LLM)
+- **Middleware**: CORS, Body Parser
+
+## 📊 Database Schema
 
 ```sql
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   rawText TEXT NOT NULL,
   title TEXT NOT NULL,
+  title_rewrite TEXT NOT NULL,
   due DATETIME,
   tags TEXT,
   createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-  urgency INTEGER DEFAULT 0
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  urgency INTEGER DEFAULT 0,
+  completed BOOLEAN DEFAULT 0,
+  pinned BOOLEAN DEFAULT 0,
+  archived BOOLEAN DEFAULT 0
+);
+
+CREATE TABLE settings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  ollamaBaseUrl TEXT DEFAULT 'http://localhost:11434',
+  ollamaModel TEXT DEFAULT 'llama3.1:latest',
+  userRules TEXT DEFAULT '',
+  showCompleted BOOLEAN DEFAULT 0,
+  sidebarCollapsed BOOLEAN DEFAULT 0,
+  theme TEXT DEFAULT 'light'
 );
 ```
 
-## 🔌 API 端点
+## 🔌 API Endpoints
 
-| 方法 | 端点 | 描述 |
-|------|------|------|
-| GET | `/tasks` | 获取所有任务（按紧急程度排序） |
-| POST | `/tasks` | 创建新任务 |
-| PUT | `/tasks/:id` | 更新任务 |
-| DELETE | `/tasks/:id` | 删除任务 |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/tasks` | Get all tasks (sorted by urgency) |
+| POST | `/tasks` | Create new task |
+| GET | `/tasks/:id` | Get specific task |
+| PATCH | `/tasks/:id` | Update task |
+| DELETE | `/tasks/:id` | Delete task |
+| PATCH | `/tasks/:id/toggle-complete` | Toggle task completion (auto-archives) |
+| PATCH | `/tasks/:id/toggle-pin` | Toggle task pin status |
+| PATCH | `/tasks/:id/toggle-archive` | Toggle task archive status |
+| POST | `/ai/rewrite` | AI task rewriting |
+| GET | `/ai/test` | Test AI connection |
+| GET | `/settings` | Get application settings |
+| PUT | `/settings` | Update application settings |
+| POST | `/seed` | Seed database with sample data |
 
-## 🎯 任务排序逻辑
+## 🎯 Task Management Logic
 
-任务按以下优先级排序：
+### Task Classification
+Tasks are automatically classified into categories:
 
-1. **已过期任务** (urgency = 3) - 最高优先级
-2. **今天到期** (urgency = 2) - 第二优先级  
-3. **3天内到期** (urgency = 1) - 第三优先级
-4. **无截止日期** (urgency = 0) - 最低优先级
+1. **Focus Now** (Urgent Tasks)
+   - Overdue tasks
+   - Tasks due today
+   - Tasks due within 1 day
+   - Maximum 4 tasks displayed
 
-## 🛠️ 开发
+2. **Other Tasks**
+   - Tasks without due dates
+   - Tasks due more than 1 day away
+   - Non-urgent tasks
 
-### 项目结构
+3. **Archived Tasks**
+   - Completed tasks (automatically archived)
+   - Manually archived tasks
+   - Hidden from main views by default
+
+### Task Sorting Algorithm
+Tasks are sorted by:
+1. **Pinned status** (pinned tasks first)
+2. **Urgency score** (computed from priority and time decay)
+3. **Due date** (earlier dates first)
+4. **Creation date** (newer tasks first)
+
+### Automatic Archiving
+- When a task is marked as completed, it's automatically archived
+- Archived tasks are hidden from main task lists
+- Archived tasks can be viewed in the "Archived" filter
+- Archived tasks can be restored or permanently deleted
+
+## 🛠️ Development
+
+### Project Structure
 ```
 focustodolist/
-├── backend/           # Node.js + Express 后端
-│   ├── server.js      # 主服务器文件
-│   ├── package.json   # 后端依赖
-│   └── focuslist.db   # SQLite 数据库
-├── frontend/          # Next.js 前端
-│   ├── app/           # Next.js App Router
-│   ├── components/    # React 组件
-│   ├── hooks/         # 自定义 Hooks
-│   ├── lib/           # 工具函数和类型
-│   └── package.json   # 前端依赖
-└── start-dev.sh       # 开发环境启动脚本
+├── backend/                 # Node.js + Express backend
+│   ├── server.js           # Main server file
+│   ├── db.js               # Database management
+│   ├── src/
+│   │   └── services/
+│   │       └── ai.js       # AI service integration
+│   ├── package.json        # Backend dependencies
+│   └── focuslist.db        # SQLite database
+├── frontend/               # Next.js frontend
+│   ├── app/                # Next.js App Router
+│   │   ├── page.tsx        # Main application page
+│   │   ├── layout.tsx      # Root layout
+│   │   └── globals.css     # Global styles
+│   ├── components/         # React components
+│   │   ├── ui/             # shadcn/ui components
+│   │   ├── sidebar.tsx     # Navigation sidebar
+│   │   ├── task-list.tsx   # Task list component
+│   │   ├── task-item.tsx   # Individual task component
+│   │   ├── settings-modal.tsx # Settings interface
+│   │   └── command-palette.tsx # Command palette
+│   ├── lib/                # Utilities and types
+│   │   ├── db.ts           # API client
+│   │   ├── types.ts        # TypeScript types
+│   │   ├── ai.ts           # AI utilities
+│   │   └── task-utils.ts   # Task management utilities
+│   └── package.json        # Frontend dependencies
+├── src-tauri/              # Tauri desktop app
+│   ├── src/
+│   │   ├── main.rs         # Rust main file
+│   │   └── lib.rs          # Rust library
+│   ├── Cargo.toml          # Rust dependencies
+│   └── tauri.conf.json     # Tauri configuration
+├── docs/                   # Documentation
+├── scripts/                # Build and setup scripts
+└── start-dev.sh           # Development startup script
 ```
 
-### 环境要求
+### Environment Requirements
 - Node.js 18+
-- npm 或 pnpm
+- npm or pnpm
+- Rust (for Tauri)
+- Ollama (optional, for AI features)
 
-## 📝 使用说明
+### Development Commands
 
-1. **添加任务**: 在顶部输入框中输入任务描述，按回车添加
-2. **编辑任务**: 双击任务标题进行编辑
-3. **完成任务**: 点击任务左侧的圆圈标记
-4. **删除任务**: 点击任务右侧的菜单按钮选择删除
-5. **置顶任务**: 在任务菜单中点击置顶按钮
+```bash
+# Start full development environment
+./start-dev.sh
 
-## 🔧 配置
+# Start only backend
+cd backend && npm run dev
 
-### 后端配置
-- 端口: 4000
-- 数据库: SQLite (focuslist.db)
-- CORS: 已启用
+# Start only frontend
+cd frontend && npm run dev
 
-### 前端配置
-- 端口: 3000
-- API 基础 URL: http://localhost:4000
+# Start Tauri desktop app
+npm run tauri:dev
 
-## 📄 许可证
+# Build for production
+npm run build
+npm run tauri:build
+```
 
-MIT License
+## 📝 Usage Guide
+
+### Basic Task Management
+1. **Add Task**: Type in the input field and press Enter
+2. **Edit Task**: Click the "..." menu and select "Edit"
+3. **Complete Task**: Click the circle on the left (auto-archives)
+4. **Pin Task**: Click the "..." menu and select "Pin"
+5. **Archive Task**: Click the "..." menu and select "Archive"
+6. **Delete Task**: Click the "..." menu and select "Delete"
+
+### Task Filtering
+- **Today**: Tasks due today
+- **Upcoming**: Tasks with future due dates
+- **Someday**: Tasks without due dates
+- **All**: All active tasks
+- **Archived**: Completed and archived tasks
+
+### Settings Configuration
+1. Open settings (gear icon in top bar)
+2. Configure Ollama settings:
+   - Base URL (default: http://localhost:11434)
+   - Model name (default: llama3.1:latest)
+3. Set custom task rewriting rules
+4. Toggle completed task visibility
+5. Manage sidebar state
+
+### AI Features
+- Tasks are automatically rewritten using local LLM
+- Custom rules can be defined for task enhancement
+- Graceful fallback if AI service is unavailable
+- Test AI connection in settings
+
+## 🔧 Configuration
+
+### Backend Configuration
+- **Port**: 4000
+- **Database**: SQLite (focuslist.db)
+- **CORS**: Enabled for localhost:3000
+- **AI Service**: Ollama integration
+
+### Frontend Configuration
+- **Port**: 3000
+- **API Base URL**: http://localhost:4000
+- **Theme**: Light/Dark mode support
+
+### Tauri Configuration
+- **Platform**: macOS, Windows, Linux
+- **Bundle**: Native desktop application
+- **Security**: Sandboxed environment
+
+## 🚀 Deployment
+
+### Desktop Application
+```bash
+# Build for current platform
+npm run tauri:build
+
+# Build for specific platform
+npm run tauri:build -- --target x86_64-apple-darwin
+```
+
+### Web Application
+```bash
+# Build frontend
+cd frontend && npm run build
+
+# Start production server
+cd frontend && npm start
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🙏 Acknowledgments
+
+- [Tauri](https://tauri.app/) - Desktop app framework
+- [Next.js](https://nextjs.org/) - React framework
+- [shadcn/ui](https://ui.shadcn.com/) - UI component library
+- [Ollama](https://ollama.ai/) - Local LLM platform
+- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
