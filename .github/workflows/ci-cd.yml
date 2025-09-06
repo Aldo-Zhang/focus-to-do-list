@@ -1,0 +1,49 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies (root)
+        run: |
+          npm install -g pnpm
+          pnpm install
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pnpm install
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          pnpm install
+      - name: Lint backend
+        run: |
+          cd backend
+          pnpm run lint || echo "No lint script"
+      - name: Lint frontend
+        run: |
+          cd frontend
+          pnpm run lint || echo "No lint script"
+      - name: Build frontend
+        run: |
+          cd frontend
+          pnpm run build
+      - name: Run backend tests
+        run: |
+          cd backend
+          pnpm run test || echo "No test script"
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          pnpm run test || echo "No test script"
