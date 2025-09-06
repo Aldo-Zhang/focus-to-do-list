@@ -5,3 +5,8 @@ backend/node_modules/
 # macOS and workspace
 .DS_Store
 .continue/
+
+# Test files
+debug-api.js
+test-*.html
+focuslist.db
