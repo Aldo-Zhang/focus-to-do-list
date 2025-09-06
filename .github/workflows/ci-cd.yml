@@ -31,10 +31,20 @@ jobs:
         run: |
           cd backend
           pnpm run lint || echo "No lint script"
+
+      - name: Type check backend
+        run: |
+          cd backend
+          pnpm run type-check || npx tsc --noEmit || echo "No type-check script"
       - name: Lint frontend
         run: |
           cd frontend
           pnpm run lint || echo "No lint script"
+
+      - name: Type check frontend
+        run: |
+          cd frontend
+          pnpm run type-check || npx tsc --noEmit
       - name: Build frontend
         run: |
           cd frontend
