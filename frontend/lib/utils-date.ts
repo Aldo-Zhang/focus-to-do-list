@@ -1,7 +1,17 @@
 export function isToday(dateString: string | null): boolean {
   if (!dateString) return false
 
-  const date = new Date(dateString)
+  // Parse date and convert to local date to avoid timezone issues
+  let date: Date
+  if (dateString.includes('T')) {
+    // If it's a full ISO string, extract just the date part
+    const datePart = dateString.split('T')[0]
+    date = new Date(datePart + 'T00:00:00')
+  } else {
+    // If it's just a date string, parse as local date
+    date = new Date(dateString + 'T00:00:00')
+  }
+  
   const today = new Date()
 
   // Check if date is valid
@@ -13,7 +23,16 @@ export function isToday(dateString: string | null): boolean {
 export function daysUntil(dateString: string | null): number {
   if (!dateString) return Number.POSITIVE_INFINITY
 
-  const date = new Date(dateString)
+  // Parse date and convert to local date to avoid timezone issues
+  let date: Date
+  if (dateString.includes('T')) {
+    // If it's a full ISO string, extract just the date part
+    const datePart = dateString.split('T')[0]
+    date = new Date(datePart + 'T00:00:00')
+  } else {
+    // If it's just a date string, parse as local date
+    date = new Date(dateString + 'T00:00:00')
+  }
   
   // Check if date is valid
   if (isNaN(date.getTime())) return Number.POSITIVE_INFINITY
@@ -29,7 +48,16 @@ export function daysUntil(dateString: string | null): number {
 export function formatDueDate(dateString: string | null): string {
   if (!dateString) return "No due"
 
-  const date = new Date(dateString)
+  // Parse date and convert to local date to avoid timezone issues
+  let date: Date
+  if (dateString.includes('T')) {
+    // If it's a full ISO string, extract just the date part
+    const datePart = dateString.split('T')[0]
+    date = new Date(datePart + 'T00:00:00')
+  } else {
+    // If it's just a date string, parse as local date
+    date = new Date(dateString + 'T00:00:00')
+  }
   
   // Check if date is valid
   if (isNaN(date.getTime())) return "Invalid date"
