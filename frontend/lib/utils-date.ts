@@ -4,6 +4,9 @@ export function isToday(dateString: string | null): boolean {
   const date = new Date(dateString)
   const today = new Date()
 
+  // Check if date is valid
+  if (isNaN(date.getTime())) return false
+
   return date.toDateString() === today.toDateString()
 }
 
@@ -11,6 +14,10 @@ export function daysUntil(dateString: string | null): number {
   if (!dateString) return Number.POSITIVE_INFINITY
 
   const date = new Date(dateString)
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) return Number.POSITIVE_INFINITY
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   date.setHours(0, 0, 0, 0)
@@ -23,6 +30,10 @@ export function formatDueDate(dateString: string | null): string {
   if (!dateString) return "No due"
 
   const date = new Date(dateString)
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) return "Invalid date"
+
   const days = daysUntil(dateString)
 
   if (days < 0) {

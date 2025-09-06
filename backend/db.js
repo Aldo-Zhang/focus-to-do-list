@@ -41,9 +41,13 @@ class DatabaseManager {
     this.migrateData();
 
     // 检查是否需要种子数据
-    const count = this.db.prepare('SELECT COUNT(*) as count FROM tasks').get();
-    if (count.count === 0) {
-      this.seedData();
+    try {
+      const count = this.db.prepare('SELECT COUNT(*) as count FROM tasks').get();
+      if (count.count === 0) {
+        this.seedData();
+      }
+    } catch (error) {
+      console.warn('Failed to check task count:', error);
     }
 
     // 初始化默认设置

@@ -48,18 +48,24 @@ export default function FocusListApp() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log("Loading tasks...")
         // Load tasks from database
         const tasks = await listTasks()
+        console.log("Loaded tasks:", tasks)
         setTasks(tasks)
         
         // If no tasks exist, seed the database
         if (tasks.length === 0) {
+          console.log("No tasks found, seeding database...")
           await seedDatabase()
           const seededTasks = await listTasks()
+          console.log("Seeded tasks:", seededTasks)
           setTasks(seededTasks)
         }
       } catch (error) {
         console.error("Failed to load tasks:", error)
+        // Show error to user
+        alert(`Failed to load tasks: ${error instanceof Error ? error.message : 'Unknown error'}`)
         // Fallback to empty array if database fails
         setTasks([])
       }
@@ -115,13 +121,17 @@ export default function FocusListApp() {
 
   const handleQuickAdd = async (text: string) => {
     try {
+      console.log("Creating task with text:", text)
+      
       // 获取用户设置
       const settings = await getSettings()
+      console.log("Settings:", settings)
       
       // 使用 AI 重写任务
       let rewriteResult
       try {
         rewriteResult = await rewriteTask(text, settings.userRules)
+        console.log("AI rewrite result:", rewriteResult)
       } catch (aiError) {
         console.warn("AI rewrite failed, using fallback:", aiError)
         // 使用本地重写作为后备
@@ -132,17 +142,26 @@ export default function FocusListApp() {
           urgency: classified.priority,
           due: classified.dueISO
         }
+        console.log("Fallback rewrite result:", rewriteResult)
       }
 
-      const newTask = await createTask({
+      const taskPayload = {
         rawText: text,
         title: rewriteResult.title,
         due: rewriteResult.due,
         tags: rewriteResult.tags,
         urgency: rewriteResult.urgency,
-      })
+      }
+      console.log("Task payload:", taskPayload)
+
+      const newTask = await createTask(taskPayload)
+      console.log("Created task:", newTask)
       
-      setTasks((prev) => [newTask, ...prev])
+      setTasks((prev) => {
+        const updated = [newTask, ...prev]
+        console.log("Updated tasks list:", updated)
+        return updated
+      })
     } catch (error: unknown) {
       console.error("Failed to create task:", error)
       // 显示错误提示
@@ -259,6 +278,12 @@ export default function FocusListApp() {
         return true
     }
   })
+
+  // 调试信息
+  console.log("All tasks:", tasks)
+  console.log("Filtered tasks:", filteredTasks)
+  console.log("Active filter:", activeFilter)
+  console.log("Settings:", settings)
 
   const sortedTasks = sortTasks(filteredTasks)
 

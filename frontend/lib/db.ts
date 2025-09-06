@@ -32,7 +32,9 @@ export interface Settings {
   userRules: string
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
+const API = "http://localhost:4000" // Hardcoded for Tauri environment
+
+console.log('API URL:', API) // Debug log
 
 async function j(r: Response) {
   if (!r.ok) throw new Error(await r.text())
@@ -40,8 +42,11 @@ async function j(r: Response) {
 }
 
 export async function listTasks(): Promise<Task[]> {
+  console.log('Fetching tasks from:', `${API}/tasks`) // Debug log
   const r = await fetch(`${API}/tasks`, { cache: "no-store" })
-  return (await j(r)).tasks as Task[]
+  const data = await j(r)
+  console.log('Received data:', data) // Debug log
+  return data.tasks as Task[]
 }
 
 export async function createTask(payload: {

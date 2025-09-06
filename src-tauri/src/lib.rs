@@ -1,5 +1,6 @@
 use tauri_plugin_sql::{Builder, Migration, MigrationKind};
 use tauri_plugin_cli::CliExt;
+use tauri_plugin_http::init as init_http;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -33,6 +34,7 @@ pub fn run() {
         .build()
     )
     .plugin(tauri_plugin_cli::init())
+    .plugin(init_http())
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
