@@ -31,7 +31,7 @@ class AIService {
       await this.loadSettings();
       const prompt = this.buildPrompt(rawText, userRules);
       const response = await this.callOllama(prompt);
-      return this.parseResponse(response);
+      return this.parseResponse(response, rawText);
     } catch (error) {
       console.warn('Ollama rewrite failed, using fallback:', error);
       return this.fallbackRewrite(rawText);
@@ -79,17 +79,26 @@ Task: "${rawText}"`;
     return response.data.response;
   }
 
-  parseResponse(response) {
+  parseResponse(response, originalText) {
     try {
       // Try to extract JSON from response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
+        
+        // Check if due date is valid (not template string)
+        let due = parsed.due;
+        if (due && (due === 'YYYY-MM-DD' || !this.isValidDate(due))) {
+          // If AI returned template or invalid date, use fallback for date parsing
+          const fallback = this.fallbackRewrite(originalText);
+          due = fallback.due;
+        }
+        
         return {
           title: parsed.title || 'Untitled Task',
           tags: Array.isArray(parsed.tags) ? parsed.tags : [],
           urgency: Math.max(0, Math.min(3, parsed.urgency || 1)),
-          due: parsed.due,
+          due: due,
         };
       }
     } catch (error) {
@@ -97,7 +106,47 @@ Task: "${rawText}"`;
     }
 
     // Fallback parsing
-    return this.fallbackRewrite(response);
+    return this.fallbackRewrite(originalText);
+  }
+
+  isValidDate(dateString) {
+    if (!dateString || typeof dateString !== 'string') return false;
+    
+    // Check if it's a template string
+    if (dateString === 'YYYY-MM-DD' || dateString.includes('YYYY') || dateString.includes('MM') || dateString.includes('DD')) {
+      return false;
+    }
+    
+    // Check if it's a valid date format
+    if (!dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return false;
+    }
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return false;
+    }
+    
+    // Check if the year is reasonable (not too far in the past or future)
+    const currentYear = new Date().getFullYear();
+    const year = parseInt(dateString.split('-')[0]);
+    
+    // Allow dates from current year to 2030 (reasonable range for task due dates)
+    if (year < currentYear || year > 2030) {
+      return false;
+    }
+    
+    // Additional check: if it's the current year, make sure it's not in the past
+    if (year === currentYear) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      date.setHours(0, 0, 0, 0);
+      if (date < today) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   fallbackRewrite(rawText) {
