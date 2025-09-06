@@ -1,0 +1,17 @@
+{
+  "name": "focuslist",
+  "version": "1.0.0",
+  "description": "FocusList - 专注任务管理应用",
+  "private": true,
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "pretauri:dev": "node scripts/tauri-ensure-cli.js",
+    "tauri:dev": "npm run pretauri:dev && tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}
